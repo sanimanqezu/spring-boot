@@ -1,0 +1,196 @@
+openapi: 3.0.3
+
+info:
+  title: GameOn API
+  version: 1.0.0 Beta
+  description: GameOn API, implemented with OpenAPI Codegen
+
+paths:
+  /users:
+    post:
+      summary: Creates a user
+      operationId: addUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDTO'
+      responses:
+        '201':
+          description: User added successfully
+
+    get:
+      summary: Retrieves all users that a user has access to
+      operationId: getAllUsers
+      responses:
+        '200':
+          description: Retrieve success response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDTO'
+        '404':
+          description: No user was found
+
+  /users/firstName:
+    get:
+      summary: Retrieve user(s) by first name
+      operationId: getUsersByFirstName
+      parameters:
+        - name: firstName
+          in: path
+          description: first name of users to retrieve
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Retrieve success response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDTO'
+        '404':
+          description: User not found
+
+  /users/lastName:
+    get:
+      summary: Retrieve user(s) by last name
+      operationId: getUsersByLastName
+      parameters:
+        - name: lastName
+          in: path
+          description: last name of users to retrieve
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Retrieve success response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDTO'
+        '404':
+          description: Users not found
+
+  /users/id/{id}:
+    get:
+      summary: Retrieve a user by id
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          description: id of a user to retrieve
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Retrieve success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+        '404':
+          description: User not found
+
+    delete:
+      summary: Remove a user by id
+      operationId: removeUserById
+      parameters:
+        - name: id
+          in: path
+          description: id of a user to remove
+          required: true
+          schema:
+            type: number
+      responses:
+        '204':
+          description: User removed successfully
+        '404':
+          description: User not found
+
+    put:
+      summary: update a user by id
+      operationId: updateUserById
+      parameters:
+        - name: id
+          in: path
+          description: id of a user to update
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDTO'
+      responses:
+        '200':
+          description: User updated successfully
+        '404':
+          description: User not found
+
+  /users/search:
+    get:
+      summary: Retrieves user by search
+      operationId: searchUsers
+      parameters:
+        - name: id
+          in: query
+          description: id of a user to search
+          required: false
+          schema:
+            type: number
+        - name: firstName
+          in: query
+          description: first name of a user to search
+          required: false
+          schema:
+            type: string
+        - name: lastName
+          in: query
+          description: last name of a user to search
+          required: false
+          schema:
+            type: string
+        - name: rsaId
+          in: query
+          description: rsa id of a user to search
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User query successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDTO'
+        '404':
+          description: User not found
+
+components:
+  schemas:
+    UserDTO:
+      type: object
+      properties:
+        id:
+          type: number
+        firstName:
+          type: string
+        lastName:
+          type: string
+        rsaId:
+          type: string

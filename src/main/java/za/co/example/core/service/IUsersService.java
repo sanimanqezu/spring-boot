@@ -1,26 +1,25 @@
 package za.co.example.core.service;
 
-import za.co.example.persistance.entities.User;
-
+import com.example.users_service.models.UserDTO;
 import java.util.List;
 
 public interface IUsersService {
 
-    void addUser(User user);
+    void addUser(UserDTO userDTO);
 
     void removeUser(Long id);
 
-    List<User> getAllUsers();
+    List<UserDTO> getAllUsers();
 
-    User getUserById(Long id);
+    UserDTO getUserById(Long id);
 
-    List<User> getUsersByFirstName(String firstName);
+    List<UserDTO> getUsersByFirstName(String firstName);
 
-    List<User> getUsersByLastName(String lastName);
+    List<UserDTO> getUsersByLastName(String lastName);
 
-    User getUserByRsaId(String rsaId);
+    UserDTO getUserByRsaId(String rsaId);
 
-    void updateUser(Long id, User updatedUser);
+    void updateUser(Long id, UserDTO updatedUser);
 
-    List<User> searchUsers(Long id, String firstName, String lastName, String rsaId);
+    List<UserDTO> searchUsers(Long id, String firstName, String lastName, String rsaId);
 }

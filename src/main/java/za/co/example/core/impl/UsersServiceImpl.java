@@ -1,18 +1,15 @@
 package za.co.example.core.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.example.users_service.models.UserDTO;
 import org.springframework.stereotype.Service;
-import za.co.example.exceptions.UserFoundException;
+import za.co.example.core.service.IUsersService;
 import za.co.example.exceptions.UserNotFoundException;
 import za.co.example.exceptions.UsersNotFoundException;
-import za.co.example.persistance.entities.User;
+import za.co.example.mapers.UserMapper;
 import za.co.example.persistance.repository.UserRepository;
-import za.co.example.core.service.IUsersService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UsersServiceImpl implements IUsersService {
@@ -24,21 +21,13 @@ public class UsersServiceImpl implements IUsersService {
     }
 
     @Override
-    public void addUser(User user) {
-        Long id = user.getId();
-        String rsaId = user.getRsaId();
-
-        if (id != null) {
-            boolean existingUser = userRepository.existsById(id);
-            if (existingUser) {
-                throw new UserFoundException("Id", id);
-            }
-        }
+    public void addUser(UserDTO userDTO) {
+        String rsaId = userDTO.getRsaId();
 
         if (rsaId.length() != 13) {
             throw new UserNotFoundException("RSA Id must have 13 digits");
         }
-        userRepository.save(user);
+        userRepository.save(UserMapper.USER_MAPPER.dtoToEntity(userDTO));
     }
 
     @Override
@@ -48,12 +37,12 @@ public class UsersServiceImpl implements IUsersService {
         if (!user) {
             throw new UserNotFoundException("Id", id);
         }
-        userRepository.delete(getUserById(id));
+        userRepository.delete(UserMapper.USER_MAPPER.dtoToEntity(getUserById(id)));
     }
 
     @Override
-    public List<User> getAllUsers() {
-        List<User> users = userRepository.findAll();
+    public List<UserDTO> getAllUsers() {
+        List<UserDTO> users = UserMapper.USER_MAPPER.entityToDto(userRepository.findAll());
 
         if (users.isEmpty()) {
             throw new UsersNotFoundException("No user was found!!");
@@ -62,18 +51,18 @@ public class UsersServiceImpl implements IUsersService {
     }
 
     @Override
-    public User getUserById(Long id) {
-        Optional<User> userOptional = userRepository.findById(id);
+    public UserDTO getUserById(Long id) {
+        UserDTO userOptional = UserMapper.USER_MAPPER.entityToDto(userRepository.findById(id).get());
 
-        if (userOptional.isEmpty()) {
+        if (userOptional == null) {
             throw new UserNotFoundException("Id", id);
         }
-        return userOptional.get();
+        return userOptional;
     }
 
     @Override
-    public List<User> getUsersByFirstName(String firstName) {
-        List<User> users = userRepository.findByFirstName(firstName);
+    public List<UserDTO> getUsersByFirstName(String firstName) {
+        List<UserDTO> users = UserMapper.USER_MAPPER.entityToDto(userRepository.findByFirstName(firstName));
         if (users == null || users.isEmpty()) {
             throw new UsersNotFoundException("First Name", firstName);
         }
@@ -81,8 +70,8 @@ public class UsersServiceImpl implements IUsersService {
     }
 
     @Override
-    public List<User> getUsersByLastName(String lastName) {
-        List<User> users = userRepository.findByLastName(lastName);
+    public List<UserDTO> getUsersByLastName(String lastName) {
+        List<UserDTO> users = UserMapper.USER_MAPPER.entityToDto(userRepository.findByLastName(lastName));
         if (users == null || users.isEmpty()) {
             throw new UsersNotFoundException("Last Name", lastName);
         }
@@ -90,40 +79,39 @@ public class UsersServiceImpl implements IUsersService {
     }
 
     @Override
-    public User getUserByRsaId(String rsaId) {
-        User user = userRepository.findByRsaId(rsaId);
-        if (user == null) {
+    public UserDTO getUserByRsaId(String rsaId) {
+        UserDTO userDTO = UserMapper.USER_MAPPER.entityToDto(userRepository.findByRsaId(rsaId));
+        if (userDTO == null) {
             throw new UserNotFoundException("RSA ID", rsaId);
         }
-        return user;
+        return userDTO;
     }
 
     @Override
-    public void updateUser(Long id, User updatedUser) {
-        User existingUser = getUserById(id);
+    public void updateUser(Long id, UserDTO updatedUser) {
+        UserDTO existingUser = getUserById(id);
         if (existingUser != null && updatedUser != null) {
             if (updatedUser.getFirstName() != null && !updatedUser.getFirstName().isEmpty()) existingUser.setFirstName(updatedUser.getFirstName());
             if (updatedUser.getLastName() != null && !updatedUser.getLastName().isEmpty()) existingUser.setLastName(updatedUser.getLastName());
             if (updatedUser.getRsaId() != null && !updatedUser.getRsaId().isEmpty()) existingUser.setRsaId(updatedUser.getRsaId());
-            userRepository.save(existingUser);
+            userRepository.save(UserMapper.USER_MAPPER.dtoToEntity(existingUser));
         }
     }
 
     @Override
-    public List<User> searchUsers(Long id, String firstName, String lastName, String rsaId) {
-        List<User> users = new ArrayList<>();
+    public List<UserDTO> searchUsers(Long id, String firstName, String lastName, String rsaId) {
+        List<UserDTO> users = new ArrayList<>();
         if (id != null) {
-            Optional<User> user = userRepository.findById(id);
-            user.ifPresent(users::add);
+            users.add(UserMapper.USER_MAPPER.entityToDto(userRepository.findById(id).get()));
         }
         if (firstName != null && !firstName.isEmpty()) {
-            users.addAll(userRepository.findByFirstName(firstName));
+            users.addAll(UserMapper.USER_MAPPER.entityToDto(userRepository.findByFirstName(firstName)));
         }
         if (lastName != null && !lastName.isEmpty()) {
-            users.addAll(userRepository.findByLastName(lastName));
+            users.addAll(UserMapper.USER_MAPPER.entityToDto(userRepository.findByLastName(lastName)));
         }
         if (rsaId != null && !rsaId.isEmpty()) {
-            users.add(userRepository.findByRsaId(rsaId));
+            users.add(UserMapper.USER_MAPPER.entityToDto(userRepository.findByRsaId(rsaId)));
         }
         return users;
     }
