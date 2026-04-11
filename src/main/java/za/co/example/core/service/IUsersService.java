@@ -1,6 +1,7 @@
 package za.co.example.core.service;
 
-import com.example.users_service.models.UserDTO;
+import za.co.example.dto.UserDTO;
+
 import java.util.List;
 
 public interface IUsersService {

@@ -1,31 +1,25 @@
 package za.co.example.exceptions;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.Instant;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ErrorResponse {
 
-    private Integer statusCode;
+    private int status;
     private String message;
+    private Instant timestamp;
+    private String path;
 
-    public ErrorResponse() {
-    }
-
-    public ErrorResponse(Integer statusCode, String message) {
-        this.statusCode = statusCode;
+    public ErrorResponse(int status, String message, String path) {
+        this.status = status;
         this.message = message;
-    }
-
-    public Integer getStatusCode() {
-        return statusCode;
-    }
-
-    public void setStatusCode(Integer statusCode) {
-        this.statusCode = statusCode;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
+        this.timestamp = Instant.now();
+        this.path = path;
     }
 }

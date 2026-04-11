@@ -1,27 +1,13 @@
 package za.co.example.constants;
 
-import za.co.example.persistance.entities.User;
+/**
+ * Seed data has been moved to Flyway migration V2__seed_users.sql.
+ * This class is kept to avoid breaking the package structure,
+ * but it no longer contains runtime data.
+ */
+public final class UsersConstant {
 
-import java.util.ArrayList;
-import java.util.List;
+    public static final int RSA_ID_LENGTH = 13;
 
-public class UsersConstant {
-
-    public static List<User> users = new ArrayList<>();
-
-    static {
-        User firstUser = new User();
-        firstUser.setId(1L);
-        firstUser.setFirstName("John");
-        firstUser.setLastName("Doe");
-        firstUser.setRsaId("0001234567890");
-        users.add(firstUser);
-
-        User secondUser = new User();
-        secondUser.setId(2L);
-        secondUser.setFirstName("Mary");
-        secondUser.setLastName("Jane");
-        secondUser.setRsaId("0123456789012");
-        users.add(secondUser);
-    }
+    private UsersConstant() {}
 }

@@ -1,86 +1,92 @@
 package za.co.example.controller;
 
-import com.example.users_service.api.UsersApi;
-import com.example.users_service.models.UserDTO;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import za.co.example.core.service.IUsersService;
+import za.co.example.dto.UserDTO;
 
-import java.math.BigDecimal;
 import java.util.List;
 
+@RestController
+@RequestMapping(value = "/users", produces = "application/json")
 @RequiredArgsConstructor
-@Controller
-@RequestMapping(value = "/users")
-public class UsersController implements UsersApi{
+@Validated
+public class UsersController {
 
-    private final Logger logger = LoggerFactory.getLogger(UsersController.class);
+    private static final Logger logger = LoggerFactory.getLogger(UsersController.class);
 
     private final IUsersService usersService;
 
-    @PostMapping(produces = "application/json")
-    public ResponseEntity<Void> addUser(@RequestBody UserDTO user) {
-        logger.info("Adding user: {}", user.toString());
+    @PostMapping(consumes = "application/json")
+    public ResponseEntity<Void> addUser(@Valid @RequestBody UserDTO user) {
+        logger.info("Creating user with RSA ID: {}", user.getRsaId());
         usersService.addUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @GetMapping(produces = "application/json")
+    @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         logger.info("Retrieving all users");
         return ResponseEntity.ok(usersService.getAllUsers());
     }
 
-    @GetMapping(value = "/id/{id}", produces = "application/json")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable BigDecimal id) {
-        logger.info("Retrieving a user by Id: {}", id);
-        return ResponseEntity.ok(usersService.getUserById(id.longValue()));
+    @GetMapping("/id/{id}")
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        logger.info("Retrieving user by id: {}", id);
+        return ResponseEntity.ok(usersService.getUserById(id));
     }
 
-    @DeleteMapping(value = "/id/{id}", produces = "application/json")
-    public ResponseEntity<Void> removeUserById(@PathVariable BigDecimal id) {
-        logger.info("Removing a user by Id: {}", id);
-        usersService.removeUser(id.longValue());
-        return ResponseEntity.status(HttpStatus.OK).build();
+    @DeleteMapping("/id/{id}")
+    public ResponseEntity<Void> removeUserById(@PathVariable Long id) {
+        logger.info("Removing user by id: {}", id);
+        usersService.removeUser(id);
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/firstName", produces = "application/json")
+    @GetMapping("/firstName")
     public ResponseEntity<List<UserDTO>> getUsersByFirstName(@RequestParam String firstName) {
-        logger.info("Retrieving user(s) by first name: {}", firstName);
+        logger.info("Retrieving users by firstName: {}", firstName);
         return ResponseEntity.ok(usersService.getUsersByFirstName(firstName));
     }
 
-    @GetMapping(value = "/lastName", produces = "application/json")
+    @GetMapping("/lastName")
     public ResponseEntity<List<UserDTO>> getUsersByLastName(@RequestParam String lastName) {
-        logger.info("Retrieving user(s) by last name: {}", lastName);
+        logger.info("Retrieving users by lastName: {}", lastName);
         return ResponseEntity.ok(usersService.getUsersByLastName(lastName));
     }
 
-    @GetMapping(value = "/rsaId", produces = "application/json")
-    public ResponseEntity<UserDTO> getUserByRsaId(@RequestParam String rsaId) {
-        logger.info("Retrieving a user by RSA Id: {}", rsaId);
+    @GetMapping("/rsaId")
+    public ResponseEntity<UserDTO> getUserByRsaId(
+            @RequestParam
+            @Pattern(regexp = "^[0-9]{13}$", message = "RSA ID must be exactly 13 numeric digits")
+            String rsaId) {
+        logger.info("Retrieving user by RSA ID");
         return ResponseEntity.ok(usersService.getUserByRsaId(rsaId));
     }
 
-    @PutMapping(value = "/id/{id}", produces = "application/json")
-    public ResponseEntity<Void> updateUserById(@PathVariable BigDecimal id, @RequestBody UserDTO updatedUser) {
-        logger.info("Updating user identified by id: {}, with user: {}", id, updatedUser.toString());
-        usersService.updateUser(id.longValue(), updatedUser);
-        return ResponseEntity.status(HttpStatus.OK).build();
+    @PutMapping(value = "/id/{id}", consumes = "application/json")
+    public ResponseEntity<Void> updateUserById(@PathVariable Long id,
+                                               @Valid @RequestBody UserDTO updatedUser) {
+        logger.info("Updating user with id: {}", id);
+        usersService.updateUser(id, updatedUser);
+        return ResponseEntity.ok().build();
     }
 
-    @GetMapping(value = "/search", produces = "application/json")
-    public ResponseEntity<List<UserDTO>> searchUsers(@RequestParam(value = "id", required = false) BigDecimal id,
-                                                 @RequestParam(value = "firstName", required = false) String firstName,
-                                                 @RequestParam(value = "lastName", required = false) String lastName,
-                                                 @RequestParam(value = "rsaId", required = false) String rsaId) {
-        logger.info("Searching user(s) by the following properties: \n Id: {} \n First Name: {} \n Last Name: {} \n RSA Id: {}",
-                id, firstName, lastName, rsaId);
-        return ResponseEntity.ok(usersService.searchUsers(id.longValue(), firstName, lastName, rsaId));
+    @GetMapping("/search")
+    public ResponseEntity<List<UserDTO>> searchUsers(
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) String lastName,
+            @RequestParam(required = false) String rsaId) {
+        logger.info("Searching users — id: {}, firstName: {}, lastName: {}, rsaId provided: {}",
+                id, firstName, lastName, rsaId != null);
+        return ResponseEntity.ok(usersService.searchUsers(id, firstName, lastName, rsaId));
     }
 }

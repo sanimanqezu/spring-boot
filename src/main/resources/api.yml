@@ -1,14 +1,14 @@
 openapi: 3.0.3
 
 info:
-  title: GameOn API
-  version: 1.0.0 Beta
-  description: GameOn API, implemented with OpenAPI Codegen
+  title: Users API
+  version: 1.0.0
+  description: User management REST API
 
 paths:
   /users:
     post:
-      summary: Creates a user
+      summary: Create a user
       operationId: addUser
       requestBody:
         required: true
@@ -18,14 +18,26 @@ paths:
               $ref: '#/components/schemas/UserDTO'
       responses:
         '201':
-          description: User added successfully
+          description: User created successfully
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User with that RSA ID already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
     get:
-      summary: Retrieves all users that a user has access to
+      summary: Retrieve all users
       operationId: getAllUsers
       responses:
         '200':
-          description: Retrieve success response
+          description: Success
           content:
             application/json:
               schema:
@@ -33,7 +45,11 @@ paths:
                 items:
                   $ref: '#/components/schemas/UserDTO'
         '404':
-          description: No user was found
+          description: No users found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /users/firstName:
     get:
@@ -41,14 +57,13 @@ paths:
       operationId: getUsersByFirstName
       parameters:
         - name: firstName
-          in: path
-          description: first name of users to retrieve
+          in: query
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: Retrieve success response
+          description: Success
           content:
             application/json:
               schema:
@@ -56,7 +71,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/UserDTO'
         '404':
-          description: User not found
+          description: No users found
 
   /users/lastName:
     get:
@@ -64,14 +79,13 @@ paths:
       operationId: getUsersByLastName
       parameters:
         - name: lastName
-          in: path
-          description: last name of users to retrieve
+          in: query
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: Retrieve success response
+          description: Success
           content:
             application/json:
               schema:
@@ -79,22 +93,42 @@ paths:
                 items:
                   $ref: '#/components/schemas/UserDTO'
         '404':
-          description: Users not found
+          description: No users found
+
+  /users/rsaId:
+    get:
+      summary: Retrieve a user by RSA ID
+      operationId: getUserByRsaId
+      parameters:
+        - name: rsaId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+        '404':
+          description: User not found
 
   /users/id/{id}:
     get:
-      summary: Retrieve a user by id
+      summary: Retrieve a user by ID
       operationId: getUserById
       parameters:
         - name: id
           in: path
-          description: id of a user to retrieve
           required: true
           schema:
-            type: number
+            type: integer
+            format: int64
       responses:
         '200':
-          description: Retrieve success response
+          description: Success
           content:
             application/json:
               schema:
@@ -103,15 +137,15 @@ paths:
           description: User not found
 
     delete:
-      summary: Remove a user by id
+      summary: Remove a user by ID
       operationId: removeUserById
       parameters:
         - name: id
           in: path
-          description: id of a user to remove
           required: true
           schema:
-            type: number
+            type: integer
+            format: int64
       responses:
         '204':
           description: User removed successfully
@@ -119,15 +153,15 @@ paths:
           description: User not found
 
     put:
-      summary: update a user by id
+      summary: Update a user by ID
       operationId: updateUserById
       parameters:
         - name: id
           in: path
-          description: id of a user to update
           required: true
           schema:
-            type: number
+            type: integer
+            format: int64
       requestBody:
         required: true
         content:
@@ -142,36 +176,33 @@ paths:
 
   /users/search:
     get:
-      summary: Retrieves user by search
+      summary: Search users by multiple criteria (OR logic)
       operationId: searchUsers
       parameters:
         - name: id
           in: query
-          description: id of a user to search
           required: false
           schema:
-            type: number
+            type: integer
+            format: int64
         - name: firstName
           in: query
-          description: first name of a user to search
           required: false
           schema:
             type: string
         - name: lastName
           in: query
-          description: last name of a user to search
           required: false
           schema:
             type: string
         - name: rsaId
           in: query
-          description: rsa id of a user to search
           required: false
           schema:
             type: string
       responses:
         '200':
-          description: User query successfully
+          description: Success
           content:
             application/json:
               schema:
@@ -179,18 +210,42 @@ paths:
                 items:
                   $ref: '#/components/schemas/UserDTO'
         '404':
-          description: User not found
+          description: No users found
 
 components:
   schemas:
     UserDTO:
       type: object
+      required:
+        - firstName
+        - lastName
+        - rsaId
       properties:
         id:
-          type: number
+          type: integer
+          format: int64
+          readOnly: true
         firstName:
           type: string
+          minLength: 2
+          maxLength: 50
         lastName:
           type: string
+          minLength: 2
+          maxLength: 50
         rsaId:
+          type: string
+          pattern: '^[0-9]{13}$'
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        path:
           type: string
